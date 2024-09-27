@@ -1,0 +1,15 @@
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+# this here because so its cached
+COPY package.json .
+
+RUN npm i -g pnpm
+
+RUN pnpm install
+
+# no need docker compose actually if prod, because just want to build
+COPY . .
+
+CMD ["pnpm", "run", "dev"]
