@@ -19,6 +19,7 @@ FROM nginx:alpine AS runtime
 # to tell elastic beanstalk to use this port
 EXPOSE 80
 
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+# commented nginx config, because we are using the default one
+# COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 
 COPY --from=builder /app/dist /usr/share/nginx/html
