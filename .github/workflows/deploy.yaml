@@ -1,0 +1,63 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github actor is the namespace docker push ghcr.io/NAMESPACE/IMAGE_NAME:latest
+  IMAGE_NAME: ${{ github.actor }}/dokcer-astro:latest
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        run: npm i -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: run tests
+        run: pnpm test
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # other option to deploy to VM instead of EB, by using github registry
+      # - name: login container registry
+      #   run: |
+      #     echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # - name: Build and Publish
+      #   run: |
+      #     docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      #     docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build docker image
+        run: docker build -t ${{ env.IMAGE_NAME }} .
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to ElasticBeanstalk
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: docker-astro
+          environment_name: dokcer-astro-env
+          existing_bucket_name: elasticbeanstalk-ap-southeast-2-222634387615
+          version_label: ${{ github.sha}}
+          region: ap-southeast-2
+          deployment_package: deploy.zip

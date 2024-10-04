@@ -12,5 +12,13 @@ RUN pnpm install
 # no need docker compose actually if prod, because just want to build
 COPY . .
 
+RUN pnpm build
 
-CMD ["pnpm", "run", "dev"]
+FROM nginx:alpine AS runtime
+
+# to tell elastic beanstalk to use this port
+EXPOSE 80
+
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+
+COPY --from=builder /app/dist /usr/share/nginx/html
