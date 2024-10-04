@@ -55,7 +55,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: docker-astro
+          application_name: dokcer-astro
           environment_name: dokcer-astro-env
           existing_bucket_name: elasticbeanstalk-ap-southeast-2-222634387615
           version_label: ${{ github.sha}}
